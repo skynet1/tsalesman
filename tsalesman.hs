@@ -43,7 +43,7 @@ main = do
     let graph = getGraph inputStr delim
     let start = getStartNode opts
     let nodes = getDests opts
-    let numRoutes = 10000000
+    let numRoutes = 100000
     let path = getPath graph numRoutes start nodes
     let outputStr = path2str path delim
     putStr outputStr

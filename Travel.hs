@@ -4,6 +4,8 @@ import Types
 import Data.Tree
 import Data.List
 import Graph
+import Control.Parallel.Strategies
+import GHC.Conc
 
 travel :: Graph -> Double -> [Node] -> [Node] -> [(Double, [Node], [Node])]
 travel (Graph edges) currentDist startNodes destNodes = do
@@ -20,10 +22,10 @@ travelTree graph dist start destNodes = do
 
 getPath :: Graph -> Int -> Node -> [Node] -> [Node]
 getPath graph numRoutes start destNodes = do
-    let l = levels (travelTree graph 0.0 [start] destNodes)
-    let samples = foldr (++) [] l
+    let l = levels (travelTree graph 0.0 [start] destNodes ) `using` parBuffer numCapabilities rdeepseq
+    let samples = ( foldr (++) [] l ) 
     let samples2 = filter (\(_, _, z) -> z == []) samples
-    let samples3 = map (\(x, y, _) -> (x, y)) samples2
-    let sorted = sort samples3
-    let (_, final) = sorted !! 0
-    reverse final
+    let samples3 = map (\(x, y, _) -> (x, y)) samples2  
+    let taken = take numRoutes samples3 `using` parBuffer numCapabilities rseq
+    let sorted = sort taken
+    let (_, final) = sorted !! 0 in reverse final
